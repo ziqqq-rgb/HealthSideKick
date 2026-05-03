@@ -1,0 +1,20 @@
+# Orchestration & Core LangChain
+langchain
+langchain-core
+langchain-community
+
+# Document Parsing 
+llama-parse
+
+# Embeddings 
+langchain-google-genai
+
+# Vector Database 
+pinecone-client
+langchain-pinecone
+
+# LLM Generation 
+langchain-groq
+
+# Environment Variables & Utilities
+python-dotenv
