@@ -23,7 +23,7 @@ def setup_rag_chain():
         embedding=embeddings
     )
 
-    retriever = vector_store.as_retriever(search_kwargs={"k": 3})
+    retriever = vector_store.as_retriever(search_kwargs={"k": 5})
 
     llm = ChatGroq(
         model="llama-3.1-8b-instant",
