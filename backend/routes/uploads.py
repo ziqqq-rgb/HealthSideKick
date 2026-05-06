@@ -1,7 +1,7 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import APIRouter, UploadFile, File
 from modules.ingest_data import process_and_upload_pdf
 
-router = FastAPI()
+router = APIRouter()
 
 @router.post("/upload-pdf/")
 async def upload_pdf(file: UploadFile = File(...)):

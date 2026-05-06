@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from logger import logger
 from middlewares.exceptions import catch_exceptions_middleware
 from routes.ask import router as ask_router
+from routes.uploads import router as uploads_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,4 +31,5 @@ app.add_middleware(
 )
 
 app.include_router(ask_router)
+app.include_router(uploads_router)
 
