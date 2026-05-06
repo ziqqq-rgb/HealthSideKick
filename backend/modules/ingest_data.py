@@ -1,11 +1,13 @@
 import os
+from time import time
+from uuid import uuid4
+from datetime import datetime, timezone
 from fastapi import UploadFile
 from dotenv import load_dotenv
 from llama_parse import LlamaParse
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
-import tempfile
 import shutil
 
 from logger import logger
@@ -48,7 +50,7 @@ def parse_document(file_path: str) -> str:
         print(f"Error initializing LlamaParse: {e}")
         return None
 
-def chunk_and_store(parsed_docs):
+def chunk_and_store(parsed_docs, file_name: str, user_id: str, file_id: str, upload_date: str):
     try:
         
         full_markdown_text = "\n\n".join([page.text for page in parsed_docs])
@@ -74,6 +76,14 @@ def chunk_and_store(parsed_docs):
         )
 
         final_chunks = text_splitter.split_documents(structured_chunks)
+
+        for chunk in final_chunks:
+            chunk.metadata.update({
+                "file_name": file_name,
+                "user_id": user_id,
+                "file_id": file_id,
+                "upload_date": upload_date
+            })
         
         
         embedding = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
@@ -83,29 +93,54 @@ def chunk_and_store(parsed_docs):
             index_name=PINECONE_INDEX_NAME,
             embedding=embedding
         )
-        print("SUCCESS! Phase 2 Complete. Check your Pinecone Dashboard now!")
+
+        batch_size = 50
+        logger.info(f"⏳ Uploading to Pinecone in batches of {batch_size}...")
+        
+        # We use .add_documents() inside a loop instead of .from_documents()
+        for i in range(0, len(final_chunks), batch_size):
+            batch = final_chunks[i : i + batch_size]
+            vector_store.add_documents(batch)
+            logger.info(f"   -> Uploaded chunks {i} to {i + len(batch)}")
+            
+            if i + batch_size < len(final_chunks):
+                logger.info("   💤 Sleeping 10s to respect Google API limits...")
+                time.sleep(10)
+
+        logger.info("✅ SUCCESS! Phase 2 Complete. Check your Pinecone Dashboard now!")
+
         
     except Exception as e:
-        print(f"Error in chunking and storing: {e}")
+        logger.error(f"Error in chunking and storing: {e}")
+        raise e
 
-async def process_and_upload_pdf(file: UploadFile) -> dict:
+async def process_and_upload_pdf(file: UploadFile, user_id: str) -> dict:
 
     file_path = None
 
     try:
+        
+        file_id = f"doc_{uuid4().hex[:8]}"
+        upload_date = datetime.now(timezone.utc).isoformat()
 
         logger.info("Starting PDF processing and upload...")
 
         file_path = save_uploaded_file(file)
-
         parsed_content = parse_document(file_path)
 
         if parsed_content:
-            chunk_and_store(parsed_content)
+            chunk_and_store(
+                parsed_docs=parsed_content, 
+                file_name=file.filename, 
+                user_id=user_id, 
+                file_id=file_id, 
+                upload_date=upload_date
+            )
 
         return {
             "status": "success",
-            "message": file.filename
+            "message": file.filename,
+            "file_id": file_id
         }
     except Exception as e:
         logger.error(f"Error processing and uploading PDF: {e}")
