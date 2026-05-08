@@ -43,14 +43,21 @@ if st.session_state["access_token"] is None:
         signup_email = st.text_input("Email (Sign Up)")
         signup_password = st.text_input("Password (Sign Up)", type="password")
         if st.button("Sign Up"):
-            # Send data to FastAPI using JSON format
             payload = {"username": signup_username, "email": signup_email, "password": signup_password}
             response = requests.post(f"{API_URL}/signup", json=payload)
-            if response.status_code == 201:
+            
+            # FastAPI often defaults to 200 instead of 201, so we check for both!
+            if response.status_code in [200, 201]:
                 st.success("Account created! You can now log in.")
             else:
-                st.error(f"Error: {response.json().get('detail')}")
-
+                # Safely try to read the JSON. If it's an HTML/Text error, catch it!
+                try:
+                    error_msg = response.json().get('detail', 'Unknown error')
+                except Exception:
+                    # If it's not JSON, just grab the raw text Render sent us
+                    error_msg = f"Server returned {response.status_code}: {response.text}"
+                
+                st.error(f"Sign up failed: {error_msg}")
 # --- PAGE LAYOUT: MAIN APP ---
 else:
     # Sidebar for File Uploads and Logout
