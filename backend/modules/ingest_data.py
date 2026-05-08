@@ -97,7 +97,6 @@ def chunk_and_store(parsed_docs, file_name: str, user_id: str, file_id: str, upl
         batch_size = 50
         logger.info(f"⏳ Uploading to Pinecone in batches of {batch_size}...")
         
-        # We use .add_documents() inside a loop instead of .from_documents()
         for i in range(0, len(final_chunks), batch_size):
             batch = final_chunks[i : i + batch_size]
             vector_store.add_documents(batch)
