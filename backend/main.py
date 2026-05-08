@@ -6,6 +6,8 @@ from logger import logger
 from middlewares.exceptions import catch_exceptions_middleware
 from routes.ask import router as ask_router
 from routes.uploads import router as uploads_router
+from routes.auth import router as auth_router
+
 from database.database import engine, Base
 from models import user
 
@@ -42,4 +44,5 @@ app.add_middleware(
 
 app.include_router(ask_router)
 app.include_router(uploads_router)
+app.include_router(auth_router)
 
