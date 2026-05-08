@@ -6,7 +6,7 @@ from logger import logger
 from middlewares.exceptions import catch_exceptions_middleware
 from routes.ask import router as ask_router
 from routes.uploads import router as uploads_router
-from database import engine, Base
+from database.database import engine, Base
 from models import user
 
 @asynccontextmanager
