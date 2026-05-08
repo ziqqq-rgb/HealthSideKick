@@ -18,3 +18,7 @@ langchain-groq
 
 # Environment Variables & Utilities
 python-dotenv
+sqlalchemy 
+psycopg2-binary 
+passlib[bcrypt] 
+pyjwt
