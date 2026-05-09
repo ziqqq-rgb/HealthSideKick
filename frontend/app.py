@@ -36,7 +36,13 @@ if st.session_state["access_token"] is None:
                 st.success("Logged in successfully!")
                 st.rerun() # Refresh the page to show the chat UI
             else:
-                st.error("Invalid email or password.")
+                # UNMASK THE ERROR!
+                try:
+                    error_msg = response.json().get('detail', 'Unknown error')
+                except Exception:
+                    error_msg = f"Server returned {response.status_code}: {response.text}"
+                
+                st.error(f"Login failed: {error_msg}")
                 
     with tab2:
         signup_username = st.text_input("Username")
