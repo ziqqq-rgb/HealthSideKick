@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # The URL where your FastAPI server is running
-API_URL = "https://healthsidekick-api.onrender.com"
+API_URL = "https://healthsidekick.onrender.com"
 
 st.set_page_config(page_title="HealthSideKick", page_icon="🩺")
 
